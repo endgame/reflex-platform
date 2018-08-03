@@ -242,6 +242,7 @@ let overrideCabal = pkg: f: if pkg == null then null else haskellLib.overrideCab
               else drv: drv;
         in {
 
+        modern-uri = self.callHackage "modern-uri" "0.1.2.1" {};
         base-compat = self.callHackage "base-compat" "0.9.2" {};
         constraints = self.callHackage "constraints" "0.9" {};
         servant-auth-server = self.callHackage "servant-auth-server" "0.3.1.0" {};
