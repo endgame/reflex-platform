@@ -184,7 +184,7 @@ let iosSupport =
         in if builtins.elem "@" (nixpkgs.lib.stringToCharacters gitArgs.url)
         then fetchgitPrivate gitArgs
         else fetchgit gitArgs)
-      else if builtins.pathExists (p + "/github.json") then fetchFromGitHub (removeAttrs (builtins.fromJSON (builtins.readFile (p + "/github.json"))) ["branch"])
+      else if builtins.pathExists (p + "/github.json") then fetchFromGitHub (filterArgs (builtins.fromJSON (builtins.readFile (p + "/github.json"))))
       else {
         name = baseNameOf p;
         outPath = filterGit p;
