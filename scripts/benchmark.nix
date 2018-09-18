@@ -1,5 +1,11 @@
 { reflex-platform ? import ./.. {} }:
 let pkgs = reflex-platform.nixpkgs;
+    reunificationPkgs = (import (fetchFromGitHub {
+      owner = "reflex-frp";
+      repo = "reflex-platform";
+      rev = "5e93dca0e332200f09de2729605522b54a0fe658";
+      sha256 = "1mza3xg6c5djqlyd3bg7mjwzh55p3j1dgm0cqlcfr13vdq8js0h7";
+    }) {}).nixpkgs;
     nodejs = pkgs.nodejs-8_x;
     # TODO remove in reunification since it is already bundled
     yarn = pkgs.callPackage ({ stdenv, nodejs, fetchzip }:
@@ -71,14 +77,14 @@ set -euo pipefail
 exec 3>&1
 exec 1>&2
 
-PATH="${yarn}/bin:${nodejs}/bin:${pkgs.nodePackages.npm}/bin:${pkgs.chromedriver}/bin:$PATH"
+PATH="${yarn}/bin:${nodejs}/bin:${pkgs.nodePackages.npm}/bin:${reunificationPkgs.chromedriver}/bin:$PATH"
 CHROME_BINARY="${if reflex-platform.system == "x86_64-darwin"
   then ""
-  else ''--chromeBinary "${pkgs.chromium}/bin/chromium"''
+  else ''--chromeBinary "${reunificationPkgs.chromium}/bin/chromium"''
 }"
 CHROMEDRIVER="${if reflex-platform.system == "x86_64-darwin"
   then ""
-  else ''--chromeDriver "${pkgs.chromedriver}/bin/chromedriver"''
+  else ''--chromeDriver "${reunificationPkgs.chromedriver}/bin/chromedriver"''
 }"
 
 CLEAN=$(mktemp -d 2>/dev/null || mktemp -d -t 'clean') # This crazy workaround ensures that it will work on both Mac OS and Linux; see https://unix.stackexchange.com/questions/30091/fix-or-alternative-for-mktemp-in-os-x
