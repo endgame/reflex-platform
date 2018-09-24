@@ -1,0 +1,12 @@
+diff --git a/cbits/WKWebView.m b/cbits/WKWebView.m
+index 46f50c2..fc70f5b 100644
+--- a/cbits/WKWebView.m
++++ b/cbits/WKWebView.m
+@@ -76,6 +76,7 @@ void addJSaddleHandler(WKWebView *webView, HsStablePtr startHandler, HsStablePtr
+     [[[webView configuration] userContentController] addScriptMessageHandler:handler name:@"jsaddle"];
+ #ifdef USE_UIKIT
+     webView.scrollView.bounces = NO;
++    webView.allowsBackForwardNavigationGestures = YES;
+ #endif
+     webView.navigationDelegate = handler;
+     webView.UIDelegate = handler;

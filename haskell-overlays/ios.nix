@@ -15,6 +15,7 @@ self: super: {
   # Optimizations are broken on some ARM-based systems for some reason.
   free = haskellLib.appendConfigureFlag super.free "--enable-optimization=0";
   jsaddle = haskellLib.appendConfigureFlag super.jsaddle "--enable-optimization=0";
+  jsaddle-wkwebview = haskellLib.appendPatch super.jsaddle-wkwebview ./wkwebview-allowsBackForwardNavigationGestures.patch;
 
   blaze-textual = haskellLib.enableCabalFlag super.blaze-textual "integer-simple";
 
