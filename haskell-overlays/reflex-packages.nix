@@ -72,7 +72,13 @@ in
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
   jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {});
 
-  jsaddle-dom = self.callPackage (hackGet ../jsaddle-dom) {};
+  jsaddle-dom = haskellLib.overrideCabal (self.callPackage (hackGet ../jsaddle-dom) {}) (old: {
+    postPatch = (old.postPatch or "") + ''
+      substituteInPlace jsaddle-dom.cabal \
+        --replace "base-compat >=0.9.0 && <0.10" "base-compat" \
+        --replace "lens >=4.12.3 && <4.16" "lens"
+    '';
+  });
   inherit (ghcjsDom) ghcjs-dom-jsffi;
 
   ##
