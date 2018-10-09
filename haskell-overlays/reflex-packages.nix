@@ -10,7 +10,7 @@ self: super:
 
 let
   reflexDom = import (hackGet ../reflex-dom) self nixpkgs;
-  jsaddleSrc = hackGet ../jsaddle;
+  jsaddleSrc = jsaddleDevelopSrc; # hackGet ../jsaddle;
   jsaddleDevelopSrc = fetchFromGitHub {
     owner = "ghcjs";
     repo = "jsaddle";
@@ -50,7 +50,22 @@ in
   ## GHCJS and JSaddle
   ##
 
-  jsaddle = self.callCabal2nix "jsaddle" "${jsaddleSrc}/jsaddle" {};
+  jsaddle = overrideCabal (self.callCabal2nix "jsaddle" "${jsaddleSrc}/jsaddle" {}) (drv: {
+    jailbreak = true;
+    postPatch = (drv.postPatch or "") + ''
+      substituteInPlace "jsaddle.cabal" --replace "http-types >=0.8.6 && <0.12" http-types
+      substituteInPlace "src-ghc/Data/JSString/Internal/Type.hs" --replace \
+        "newtype JSString = JSString Text deriving(Show, Read, IsString, Monoid, Ord, Eq, Data, ToJSON, FromJSON, Typeable)" \
+        "newtype JSString = JSString Text deriving(Show, Read, IsString, Semigroup, Monoid, Ord, Eq, Data, ToJSON, FromJSON, Typeable)"
+      substituteInPlace "src/Language/Javascript/JSaddle/Run.hs" --replace \
+        "import GHC.Stats (getGCStatsEnabled, getGCStats, GCStats(..))" \
+        "import GHC.Stats (getRTSStatsEnabled, getRTSStats, RTSStats(..), gcdetails_live_bytes, gc)" \
+        --replace \
+        'currentBytesUsedStr <- getGCStatsEnabled >>= \case' 'currentBytesUsedStr <- getRTSStatsEnabled >>= \case' \
+        --replace \
+        'True  -> show . currentBytesUsed <$> getGCStats' 'True  -> show . gcdetails_live_bytes . gc <$> getRTSStats'
+    '';
+  });
   jsaddle-clib = self.callCabal2nix "jsaddle-clib" "${jsaddleSrc}/jsaddle-clib" {};
   jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" "${jsaddleSrc}/jsaddle-webkit2gtk" {};
   jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" "${jsaddleSrc}/jsaddle-webkitgtk" {};
@@ -77,9 +92,15 @@ in
   # another broken test
   # phantomjs has issues with finding the right port
   # jsaddle-warp = dontCheck (addTestToolDepend (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}));
-  jsaddle-warp = dontCheck (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {});
-
-  jsaddle-dom = self.callPackage (hackGet ../jsaddle-dom) {};
+  jsaddle-warp = overrideCabal (self.callCabal2nix "jsaddle-warp" "${jsaddleSrc}/jsaddle-warp" {}) (drv: {
+    doCheck = false;
+    postPatch = (drv.postPatch or "") + ''
+      substituteInPlace "jsaddle-warp.cabal" \
+        --replace "aeson >=0.8.0.2 && <1.3" "aeson" \
+        --replace "http-types >=0.8.6 && <0.12" "http-types"
+    '';
+  });
+  jsaddle-dom = doJailbreak (self.callPackage (hackGet ../jsaddle-dom) {});
   inherit (ghcjsDom) ghcjs-dom-jsffi;
 
   ##
