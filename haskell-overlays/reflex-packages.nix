@@ -11,6 +11,12 @@ self: super:
 let
   reflexDom = import (hackGet ../reflex-dom) self nixpkgs;
   jsaddleSrc = hackGet ../jsaddle;
+  jsaddleDevelopSrc = fetchFromGitHub {
+    owner = "ghcjs";
+    repo = "jsaddle";
+    rev = "50126cdcc15caeecb5910a15ac6cb67e3ab638ae";
+    sha256 = "0pnn36h6a8sfwhhf34px6a1lvzr447p7z0r0ky7shv7d78awfvgc";
+  };
   gargoylePkgs = self.callPackage (hackGet ../gargoyle) self;
   ghcjsDom = import (hackGet ../ghcjs-dom) self;
   addReflexTraceEventsFlag = drv: if enableTraceReflexEvents
@@ -48,7 +54,8 @@ in
   jsaddle-clib = self.callCabal2nix "jsaddle-clib" "${jsaddleSrc}/jsaddle-clib" {};
   jsaddle-webkit2gtk = self.callCabal2nix "jsaddle-webkit2gtk" "${jsaddleSrc}/jsaddle-webkit2gtk" {};
   jsaddle-webkitgtk = self.callCabal2nix "jsaddle-webkitgtk" "${jsaddleSrc}/jsaddle-webkitgtk" {};
-  jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" "${jsaddleSrc}/jsaddle-wkwebview" {}) (drv: {
+  jsaddle-wkwebview = overrideCabal (self.callCabal2nix "jsaddle-wkwebview" "${jsaddleDevelopSrc}/jsaddle-wkwebview" {}) (drv: {
+    jailbreak = true;
     # HACK(matthewbauer): Can’t figure out why cf-private framework is
     #                     not getting pulled in correctly. Has something
     #                     to with how headers are looked up in xcode.
